@@ -1,7 +1,9 @@
 import { z } from "zod";
 
-export const bookingSchema = z.object({
-  courtId: z.number(),
-  startTime: z.string(),
-  endTime: z.string()
+export const createBookingSchema = z.object({
+  body: z.object({
+    courtId: z.number().int().positive(),
+    startTime: z.string().datetime(),
+    endTime: z.string().datetime()
+  })
 });
