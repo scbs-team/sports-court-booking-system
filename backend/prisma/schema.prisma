@@ -7,6 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
 model Court {
   id       Int       @id @default(autoincrement())
   name     String
@@ -14,9 +21,16 @@ model Court {
 }
 
 model Booking {
-  id        Int      @id @default(autoincrement())
+  id        Int           @id @default(autoincrement())
   courtId   Int
   startTime DateTime
   endTime   DateTime
-  court     Court    @relation(fields: [courtId], references: [id])
+  status    BookingStatus @default(PENDING)
+
+  court     Court         @relation(fields: [courtId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courtId, startTime, endTime])
 }
