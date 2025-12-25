@@ -1,43 +1,15 @@
 {
   "compilerOptions": {
-    /* Language and Environment */
-    "target": "ES2020",                          // Modern JavaScript output
-    "lib": ["ES2020"],                           // Include modern JS features (fixes Promise and includes errors)
-    "module": "commonjs",                        // Node.js module system
-    
-    /* Module Resolution */
-    "moduleResolution": "node",                  // Use Node.js module resolution
-    "resolveJsonModule": true,                   // Allow importing .json files
-    "esModuleInterop": true,                     // Better compatibility with ES modules
-    "allowSyntheticDefaultImports": true,        // Allow default imports from modules
-    
-    /* Type Checking */
-    "strict": true,                              // Enable all strict type checking
-    "noImplicitAny": true,                       // Error on implicit 'any' types
-    "strictNullChecks": true,                    // Strict null/undefined checking
-    "strictFunctionTypes": true,                 // Strict function type checking
-    "noUnusedLocals": true,                      // Error on unused local variables
-    "noUnusedParameters": true,                  // Error on unused parameters
-    "noImplicitReturns": true,                   // Error on missing return statements
-    
-    /* Emit */
-    "outDir": "./dist",                          // Output compiled files to dist/
-    "rootDir": "./src",                          // Source files root
-    "sourceMap": true,                           // Generate source maps for debugging
-    "removeComments": true,                      // Remove comments from output
-    
-    /* Interop Constraints */
-    "forceConsistentCasingInFileNames": true,    // Ensure consistent file naming
-    "skipLibCheck": true                         // Skip type checking of declaration files
+    "target": "ES2020",
+    "module": "commonjs",
+    "rootDir": "src",
+    "outDir": "dist",
+    "moduleResolution": "node",
+    "types": ["node"],
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true
   },
-  
-  /* Include/Exclude */
-  "include": [
-    "src/**/*"                                   // Include all files in src/
-  ],
-  "exclude": [
-    "node_modules",                              // Exclude dependencies
-    "dist",                                      // Exclude build output
-    "**/*.test.ts"                               // Exclude test files
-  ]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

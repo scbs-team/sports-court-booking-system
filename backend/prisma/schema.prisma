@@ -1,62 +1,22 @@
-// Prisma Schema (Prisma 7)
-// Defines database models and relationships for the Sports Court Booking System
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// User model
-// Represents users who can make bookings
-model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String   // Hashed password
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relationships
-  bookings  Booking[]
-}
-
-// Court model
-// Represents sports courts available for booking
 model Court {
-  id          String   @id @default(cuid())
-  name        String
-  type        String   // e.g., "Basketball", "Tennis", "Badminton"
-  description String?
-  pricePerHour Float   // Using Float for SQLite compatibility (store price as decimal number)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relationships
-  bookings    Booking[]
+  id       Int       @id @default(autoincrement())
+  name     String
+  bookings Booking[]
 }
 
-// Booking model
-// Represents court bookings made by users
 model Booking {
-  id        String   @id @default(cuid())
-  courtId   String
-  userId    String
+  id        Int      @id @default(autoincrement())
+  courtId   Int
   startTime DateTime
   endTime   DateTime
-  status    String   @default("CONFIRMED") // CONFIRMED, CANCELLED, COMPLETED
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relationships
   court     Court    @relation(fields: [courtId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-
-  // Indexes for performance
-  @@index([courtId, startTime, endTime])
-  @@index([userId])
 }
