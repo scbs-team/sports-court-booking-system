@@ -5,7 +5,8 @@
     "rootDir": "src",
     "outDir": "dist",
     "moduleResolution": "node",
-    "types": ["node"],
+    "types": ["node", "express"],
+    "typeRoots": ["./src/types", "./node_modules/@types"],
     "esModuleInterop": true,
     "strict": true,
     "skipLibCheck": true
