@@ -6,40 +6,35 @@ import {
   completeBookingHandler,
 } from '../controllers/booking.controller';
 import { authMiddleware } from '../middlewares/auth';
-import { validate } from '../middlewares/validate';
-import {
-  createBookingSchema,
-  bookingIdParamSchema,
-} from '../validations/booking.schema';
 
 const router = Router();
 
-router.post(
-  '/',
-  authMiddleware,
-  validate(createBookingSchema),
-  createBookingHandler,
-);
+/**
+ * @route   POST /bookings
+ * @desc    Create a new booking
+ * @access  Authenticated users
+ */
+router.post('/', authMiddleware, createBookingHandler);
 
-router.post(
-  '/:id/confirm',
-  authMiddleware,
-  validate(bookingIdParamSchema, 'params'),
-  confirmBookingHandler,
-);
+/**
+ * @route   PATCH /bookings/:id/confirm
+ * @desc    Confirm a booking (automated)
+ * @access  Authenticated users
+ */
+router.patch('/:id/confirm', authMiddleware, confirmBookingHandler);
 
-router.post(
-  '/:id/cancel',
-  authMiddleware,
-  validate(bookingIdParamSchema, 'params'),
-  cancelBookingHandler,
-);
+/**
+ * @route   PATCH /bookings/:id/cancel
+ * @desc    Cancel a booking
+ * @access  Authenticated users
+ */
+router.patch('/:id/cancel', authMiddleware, cancelBookingHandler);
 
-router.post(
-  '/:id/complete',
-  authMiddleware,
-  validate(bookingIdParamSchema, 'params'),
-  completeBookingHandler,
-);
+/**
+ * @route   PATCH /bookings/:id/complete
+ * @desc    Complete a booking
+ * @access  Authenticated users
+ */
+router.patch('/:id/complete', authMiddleware, completeBookingHandler);
 
 export default router;

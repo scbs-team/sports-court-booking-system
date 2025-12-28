@@ -1,75 +1,73 @@
 import { prisma } from '../lib/prisma';
 import { BookingStatus } from '@prisma/client';
 import { assertBookingAllowed } from '../domain/booking/booking.guard';
+import { canTransition } from '../domain/booking/booking.transitions';
 
-type CreateBookingInput = {
+export type CreateBookingInput = {
   courtId: number;
   startTime: Date;
   endTime: Date;
   userId: string;
 };
 
-export async function createBooking(input: CreateBookingInput) {
-  await assertBookingAllowed(input);
+export class BookingService {
+  /**
+   * Create a new booking with PENDING status
+   */
+  static async createBooking(input: CreateBookingInput) {
+    await assertBookingAllowed(input);
 
-  return prisma.booking.create({
-    data: {
-      courtId: input.courtId,
-      startTime: input.startTime,
-      endTime: input.endTime,
-      status: BookingStatus.PENDING,
-      // userId will be wired once relation is added
-    },
-  });
-}
+    return prisma.booking.create({
+      data: {
+        courtId: input.courtId,
+        startTime: input.startTime,
+        endTime: input.endTime,
+        status: BookingStatus.PENDING,
+        // TODO: wire userId once relation is added
+      },
+    });
+  }
 
-import { assertStatusTransitionAllowed } from '../domain/booking/booking.lifecycle';
+  /**
+   * Generic status updater with validation
+   */
+  static async updateBookingStatus(bookingId: number, newStatus: BookingStatus) {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
 
-export async function confirmBooking(bookingId: number) {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-  });
+    if (!booking) {
+      throw new Error(`Booking with ID ${bookingId} not found`);
+    }
 
-  if (!booking) throw new Error('Booking not found');
+    if (!canTransition(booking.status, newStatus)) {
+      throw new Error(`Cannot transition booking from ${booking.status} to ${newStatus}`);
+    }
 
-  assertStatusTransitionAllowed(booking.status, BookingStatus.CONFIRMED);
+    return prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: newStatus },
+    });
+  }
 
-  return prisma.booking.update({
-    where: { id: bookingId },
-    data: { status: BookingStatus.CONFIRMED },
-  });
-}
+  /**
+   * Confirm a booking (PENDING → CONFIRMED)
+   */
+  static async confirmBooking(bookingId: number) {
+    return this.updateBookingStatus(bookingId, BookingStatus.CONFIRMED);
+  }
 
-import { assertCanCompleteBooking } from '../domain/booking/booking.lifecycle';
+  /**
+   * Complete a booking (CONFIRMED → COMPLETED)
+   */
+  static async completeBooking(bookingId: number) {
+    return this.updateBookingStatus(bookingId, BookingStatus.COMPLETED);
+  }
 
-export async function completeBooking(bookingId: number) {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-  });
-
-  if (!booking) throw new Error('Booking not found');
-
-  assertCanCompleteBooking(booking.status, booking.endTime);
-
-  return prisma.booking.update({
-    where: { id: bookingId },
-    data: { status: BookingStatus.COMPLETED },
-  });
-}
-
-import { assertCanCancelBooking } from '../domain/booking/booking.lifecycle';
-
-export async function cancelBooking(bookingId: number) {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-  });
-
-  if (!booking) throw new Error('Booking not found');
-
-  assertCanCancelBooking(booking.status);
-
-  return prisma.booking.update({
-    where: { id: bookingId },
-    data: { status: BookingStatus.CANCELLED },
-  });
+  /**
+   * Cancel a booking (PENDING/CONFIRMED → CANCELLED)
+   */
+  static async cancelBooking(bookingId: number) {
+    return this.updateBookingStatus(bookingId, BookingStatus.CANCELLED);
+  }
 }
