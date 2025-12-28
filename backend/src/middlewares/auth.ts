@@ -1,23 +1,34 @@
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import { prisma } from '../lib/prisma';
 
-const JWT_SECRET = (process.env.JWT_SECRET || "dev-secret") as jwt.Secret;
-
-export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-  const header = req.headers.authorization;
-  if (!header?.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Missing token" });
-  }
-
-  const token = header.slice(7);
+export async function authMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as {
+    const header = req.headers.authorization;
+    if (!header) {
+      return res.status(401).json({ message: 'Missing Authorization header' });
+    }
+
+    const token = header.replace('Bearer ', '');
+    const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
       userId: string;
-      role: string;
     };
-    req.user = { id: payload.userId, role: payload.role };
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    req.user = user;
     next();
   } catch {
-    return res.status(401).json({ error: "Invalid token" });
+    return res.status(401).json({ message: 'Invalid or expired token' });
   }
-};
+}

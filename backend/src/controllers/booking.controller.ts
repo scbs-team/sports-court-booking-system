@@ -1,16 +1,49 @@
-import { Request, Response } from "express";
-import * as bookingService from "../services/booking.service";
+import { Request, Response } from 'express';
+import {
+  createBooking,
+  confirmBooking,
+  cancelBooking,
+  completeBooking,
+} from '../services/booking.service';
 
-export const createBooking = async (req: Request, res: Response) => {
+export async function createBookingHandler(req: Request, res: Response) {
   try {
-    const booking = await bookingService.createBooking(req.body);
+    const booking = await createBooking({
+      courtId: req.body.courtId,
+      startTime: new Date(req.body.startTime),
+      endTime: new Date(req.body.endTime),
+      userId: req.user.id, // from auth middleware
+    });
+
     res.status(201).json(booking);
   } catch (err: any) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ message: err.message });
   }
-};
+}
 
-export const getBookings = async (_req: Request, res: Response) => {
-  const bookings = await bookingService.getBookings();
-  res.json(bookings);
-};
+export async function confirmBookingHandler(req: Request, res: Response) {
+  try {
+    const booking = await confirmBooking(Number(req.params.id));
+    res.json(booking);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+export async function cancelBookingHandler(req: Request, res: Response) {
+  try {
+    const booking = await cancelBooking(Number(req.params.id));
+    res.json(booking);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+export async function completeBookingHandler(req: Request, res: Response) {
+  try {
+    const booking = await completeBooking(Number(req.params.id));
+    res.json(booking);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+}

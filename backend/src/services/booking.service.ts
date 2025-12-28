@@ -1,55 +1,75 @@
-import prisma from "../lib/prisma";
+import { prisma } from '../lib/prisma';
+import { BookingStatus } from '@prisma/client';
+import { assertBookingAllowed } from '../domain/booking/booking.guard';
 
-interface CreateBookingInput {
+type CreateBookingInput = {
   courtId: number;
-  startTime: string;
-  endTime: string;
-}
+  startTime: Date;
+  endTime: Date;
+  userId: string;
+};
 
-export const createBooking = async (data: CreateBookingInput) => {
-  const overlap = await prisma.booking.findFirst({
-    where: {
-      courtId: data.courtId,
-      AND: [
-        { startTime: { lt: new Date(data.endTime) } },
-        { endTime: { gt: new Date(data.startTime) } },
-      ],
-    },
-  });
-
-  if (overlap) {
-    throw new Error("Time slot already booked");
-  }
+export async function createBooking(input: CreateBookingInput) {
+  await assertBookingAllowed(input);
 
   return prisma.booking.create({
     data: {
-      courtId: data.courtId,
-      startTime: new Date(data.startTime),
-      endTime: new Date(data.endTime),
+      courtId: input.courtId,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      status: BookingStatus.PENDING,
+      // userId will be wired once relation is added
     },
   });
-};
+}
 
-export const getBookings = async () => {
-  return prisma.booking.findMany({
-    include: { court: true },
+import { assertStatusTransitionAllowed } from '../domain/booking/booking.lifecycle';
+
+export async function confirmBooking(bookingId: number) {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
   });
-};
 
-export const getAvailableCourts = async (startTime: string, endTime: string) => {
-  const bookedCourtIds = (
-    await prisma.booking.findMany({
-      where: {
-        AND: [
-          { startTime: { lt: new Date(endTime) } },
-          { endTime: { gt: new Date(startTime) } },
-        ],
-      },
-      select: { courtId: true },
-    })
-  ).map((b) => b.courtId);
+  if (!booking) throw new Error('Booking not found');
 
-  return prisma.court.findMany({
-    where: { id: { notIn: bookedCourtIds } },
+  assertStatusTransitionAllowed(booking.status, BookingStatus.CONFIRMED);
+
+  return prisma.booking.update({
+    where: { id: bookingId },
+    data: { status: BookingStatus.CONFIRMED },
   });
-};
+}
+
+import { assertCanCompleteBooking } from '../domain/booking/booking.lifecycle';
+
+export async function completeBooking(bookingId: number) {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+  });
+
+  if (!booking) throw new Error('Booking not found');
+
+  assertCanCompleteBooking(booking.status, booking.endTime);
+
+  return prisma.booking.update({
+    where: { id: bookingId },
+    data: { status: BookingStatus.COMPLETED },
+  });
+}
+
+import { assertCanCancelBooking } from '../domain/booking/booking.lifecycle';
+
+export async function cancelBooking(bookingId: number) {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+  });
+
+  if (!booking) throw new Error('Booking not found');
+
+  assertCanCancelBooking(booking.status);
+
+  return prisma.booking.update({
+    where: { id: bookingId },
+    data: { status: BookingStatus.CANCELLED },
+  });
+}

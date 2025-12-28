@@ -1,20 +1,16 @@
-import { AnyZodObject } from "zod";
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from 'express';
+import { ZodSchema } from 'zod';
 
 export const validate =
-  (schema: AnyZodObject) =>
+  (schema: ZodSchema, property: 'body' | 'params' = 'body') =>
   (req: Request, res: Response, next: NextFunction) => {
     try {
-      schema.parse({
-        body: req.body,
-        params: req.params,
-        query: req.query
-      });
+      schema.parse(req[property]);
       next();
     } catch (err: any) {
       return res.status(400).json({
-        error: "Validation failed",
-        details: err.errors
+        message: 'Validation failed',
+        errors: err.errors,
       });
     }
   };

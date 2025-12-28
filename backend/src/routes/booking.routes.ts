@@ -1,40 +1,45 @@
-import { Router } from "express";
-import { getAvailableCourts, createBooking, getBookings } from "../services/booking.service";
+import { Router } from 'express';
+import {
+  createBookingHandler,
+  confirmBookingHandler,
+  cancelBookingHandler,
+  completeBookingHandler,
+} from '../controllers/booking.controller';
+import { authMiddleware } from '../middlewares/auth';
+import { validate } from '../middlewares/validate';
+import {
+  createBookingSchema,
+  bookingIdParamSchema,
+} from '../validations/booking.schema';
 
 const router = Router();
 
-// Get all bookings
-router.get("/", async (req, res) => {
-  try {
-    const bookings = await getBookings();
-    res.json(bookings);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.post(
+  '/',
+  authMiddleware,
+  validate(createBookingSchema),
+  createBookingHandler,
+);
 
-// Create booking
-router.post("/", async (req, res) => {
-  try {
-    const booking = await createBooking(req.body);
-    res.status(201).json(booking);
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
-  }
-});
+router.post(
+  '/:id/confirm',
+  authMiddleware,
+  validate(bookingIdParamSchema, 'params'),
+  confirmBookingHandler,
+);
 
-router.get("/availability", async (req, res) => {
-  try {
-    const { startTime, endTime } = req.query;
-    if (!startTime || !endTime) {
-      return res.status(400).json({ error: "startTime and endTime are required" });
-    }
+router.post(
+  '/:id/cancel',
+  authMiddleware,
+  validate(bookingIdParamSchema, 'params'),
+  cancelBookingHandler,
+);
 
-    const availableCourts = await getAvailableCourts(startTime as string, endTime as string);
-    res.json(availableCourts);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.post(
+  '/:id/complete',
+  authMiddleware,
+  validate(bookingIdParamSchema, 'params'),
+  completeBookingHandler,
+);
 
 export default router;
