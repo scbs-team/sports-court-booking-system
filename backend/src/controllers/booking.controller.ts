@@ -11,6 +11,10 @@ export const createBooking = async (req: Request, res: Response) => {
 };
 
 export const getBookings = async (_req: Request, res: Response) => {
-  const bookings = await bookingService.getBookings();
-  res.json(bookings);
+  try {
+    const bookings = await bookingService.getBookings();
+    res.json(bookings);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 };
