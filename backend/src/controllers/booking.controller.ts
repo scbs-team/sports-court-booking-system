@@ -16,6 +16,7 @@ export async function createBookingHandler(req: Request, res: Response) {
   }
 }
 
+
 export async function confirmBookingHandler(req: Request, res: Response) {
   try {
     const booking = await BookingService.confirmBooking(Number(req.params.id));
@@ -42,3 +43,11 @@ export async function completeBookingHandler(req: Request, res: Response) {
     res.status(400).json({ message: err.message });
   }
 }
+export const getBookings = async (_req: Request, res: Response) => {
+  try {
+    const bookings = await bookingService.getBookings();
+    res.json(bookings);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};

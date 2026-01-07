@@ -1,3 +1,4 @@
+
 model Booking {
   id        String   @id @default(uuid())
   userId    String
@@ -8,8 +9,47 @@ model Booking {
 
   user  User  @relation(fields: [userId], references: [id])
   court Court @relation(fields: [courtId], references: [id])
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+model Court {
+  id       Int       @id @default(autoincrement())
+  name     String
+  bookings Booking[]
+}
+
+model Booking {
+  id        Int      @id @default(autoincrement())
+  courtId   Int
+  startTime DateTime
+  endTime   DateTime
+  court     Court    @relation(fields: [courtId], references: [id])
+
 
   createdAt DateTime @default(now())
 
   @@index([courtId, startTime, endTime])
 }
+
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
