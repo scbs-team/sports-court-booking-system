@@ -22,25 +22,26 @@ router.delete("/:id", courtController.deleteCourt);
 router.get("/:id/bookings", async (req, res) => {
   try {
     const { id } = req.params;
-    const { startDate, endDate } = req.query; // REMOVED: status
+    const { startDate, endDate, status } = req.query;
     
-    if (!id || !/^\d+$/.test(id)) {
+    // UUID validation
+    if (!id || id.length < 10) {
       return res.status(400).json({
         success: false,
-        error: "Valid court ID is required"
+        error: "Valid court ID (UUID) is required"
       });
     }
     
     const prisma = await import("../lib/prisma").then(m => m.default);
     
     const where: any = {
-      courtId: Number(id)
+      courtId: id // Keep as string, NO Number()
     };
     
-    // REMOVED: status filter since we don't have status field anymore
-    // if (status) {
-    //   where.status = status;
-    // }
+    // Status filter
+    if (status && ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'].includes(status as string)) {
+      where.status = status;
+    }
     
     if (startDate || endDate) {
       where.startTime = {};
@@ -78,25 +79,30 @@ router.get("/:id/availability", async (req, res) => {
     const { id } = req.params;
     const { date } = req.query;
     
-    if (!id || !/^\d+$/.test(id)) {
+    // UUID validation
+    if (!id || id.length < 10) {
       return res.status(400).json({
         success: false,
-        error: "Valid court ID is required"
+        error: "Valid court ID (UUID) is required"
       });
     }
     
     const targetDate = date ? new Date(date as string) : new Date();
-    const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
+    const startOfDay = new Date(targetDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(targetDate);
+    endOfDay.setHours(23, 59, 59, 999);
     
     const prisma = await import("../lib/prisma").then(m => m.default);
     
-    // Get all bookings for this court on the target date
-    // REMOVED: status filter
+    // Get all active bookings for this court on the target date
     const bookings = await prisma.booking.findMany({
       where: {
-        courtId: Number(id),
-        // REMOVED: status filter
+        courtId: id, // Keep as string
+        status: {
+          in: ["PENDING", "CONFIRMED"] as any[]
+        },
         startTime: {
           gte: startOfDay,
           lte: endOfDay
@@ -107,9 +113,9 @@ router.get("/:id/availability", async (req, res) => {
       }
     });
     
-    // Generate availability slots (assuming 1-hour slots from 8 AM to 10 PM)
+    // Generate availability slots (8 AM to 10 PM, 1-hour slots)
     const availableSlots = [];
-    const businessHours = { start: 8, end: 22 }; // 8 AM to 10 PM
+    const businessHours = { start: 8, end: 22 };
     
     for (let hour = businessHours.start; hour < businessHours.end; hour++) {
       const slotStart = new Date(startOfDay);
@@ -118,8 +124,8 @@ router.get("/:id/availability", async (req, res) => {
       const slotEnd = new Date(startOfDay);
       slotEnd.setHours(hour + 1, 0, 0, 0);
       
-      // Check if this slot is booked
-      const isBooked = bookings.some(booking => 
+      // Check if this slot overlaps with any booking
+      const isBooked = bookings.some((booking: { startTime: Date; endTime: Date }) => 
         booking.startTime < slotEnd && booking.endTime > slotStart
       );
       

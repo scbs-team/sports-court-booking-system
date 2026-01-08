@@ -73,15 +73,16 @@ export const getCourtById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
-    if (!id || !/^\d+$/.test(id)) {
+    // UUID validation (basic check for length)
+    if (!id || id.length < 10) {
       return res.status(400).json({
         success: false,
-        error: "Valid court ID is required"
+        error: "Valid court ID (UUID) is required"
       });
     }
     
     const court = await prisma.court.findUnique({
-      where: { id: Number(id) },
+      where: { id: id }, // NO Number() conversion - UUID is string!
       include: {
         bookings: {
           where: {
@@ -119,18 +120,18 @@ export const deleteCourt = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
-    if (!id || !/^\d+$/.test(id)) {
+    // UUID validation
+    if (!id || id.length < 10) {
       return res.status(400).json({
         success: false,
-        error: "Valid court ID is required"
+        error: "Valid court ID (UUID) is required"
       });
     }
     
-    // Check if court has any bookings (active or future)
+    // Check if court has any future bookings
     const activeBookings = await prisma.booking.count({
       where: {
-        courtId: Number(id),
-        // REMOVED: status check since we don't have status field
+        courtId: id, // NO Number() conversion
         endTime: {
           gt: new Date() // Only check future bookings
         }
@@ -145,7 +146,7 @@ export const deleteCourt = async (req: Request, res: Response) => {
     }
     
     const court = await prisma.court.delete({
-      where: { id: Number(id) }
+      where: { id: id } // NO Number() conversion
     });
     
     res.json({
@@ -172,10 +173,11 @@ export const updateCourt = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name } = req.body;
     
-    if (!id || !/^\d+$/.test(id)) {
+    // UUID validation
+    if (!id || id.length < 10) {
       return res.status(400).json({
         success: false,
-        error: "Valid court ID is required"
+        error: "Valid court ID (UUID) is required"
       });
     }
     
@@ -187,7 +189,7 @@ export const updateCourt = async (req: Request, res: Response) => {
     }
     
     const court = await prisma.court.update({
-      where: { id: Number(id) },
+      where: { id: id }, // NO Number() conversion
       data: { name: name.trim() }
     });
     

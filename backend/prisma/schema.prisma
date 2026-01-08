@@ -7,28 +7,37 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  CUSTOMER
-  ADMIN
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
 }
 
 model Court {
-  id       Int       @id @default(autoincrement())
+  id       String    @id @default(uuid())  // Changed from Int to String with UUID
   name     String
   bookings Booking[]
 }
 
 model Booking {
-  id        Int      @id @default(autoincrement())
-  courtId   Int
+  id        String        @id @default(uuid())  // Changed from Int to String with UUID
+  courtId   String        // Changed from Int to String
   startTime DateTime
   endTime   DateTime
-  court     Court    @relation(fields: [courtId], references: [id])
+  status    BookingStatus @default(PENDING)
+
+  court Court @relation(fields: [courtId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([courtId, startTime, endTime])
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN  // Consider adding admin role
 }
 
 model User {
