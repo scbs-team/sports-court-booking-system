@@ -1,3 +1,14 @@
+
+model Booking {
+  id        String   @id @default(uuid())
+  userId    String
+  courtId   String
+  startTime DateTime
+  endTime   DateTime
+  status    BookingStatus @default(PENDING)
+
+  user  User  @relation(fields: [userId], references: [id])
+  court Court @relation(fields: [courtId], references: [id])
 generator client {
   provider = "prisma-client-js"
 }
@@ -29,16 +40,19 @@ model Booking {
 
   court Court @relation(fields: [courtId], references: [id])
 
+
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   @@index([courtId, startTime, endTime])
 }
 
+<<<<<<< HEAD
 enum Role {
   CUSTOMER
   ADMIN  // Consider adding admin role
 }
+=======
+>>>>>>> 527e3fa407650e442125672573fc3fa1f35b164b
 
 model User {
   id           String   @id @default(uuid())
@@ -49,3 +63,4 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+

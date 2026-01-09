@@ -1,4 +1,7 @@
-import prisma from "../lib/prisma";
+import { prisma } from '../lib/prisma';
+import { BookingStatus } from '@prisma/client';
+import { assertBookingAllowed } from '../domain/booking/booking.guard';
+import { canTransition } from '../domain/booking/booking.transitions';
 
 // Configuration
 const BOOKING_CONFIG = {
