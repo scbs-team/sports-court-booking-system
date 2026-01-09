@@ -1,22 +1,7 @@
-
 import { Request, Response, NextFunction } from 'express';
-import { ZodSchema } from 'zod';
+import { ZodError, ZodSchema } from 'zod';
 
-export const validate =
-  (schema: ZodSchema, property: 'body' | 'params' = 'body') =>
-  (req: Request, res: Response, next: NextFunction) => {
-    try {
-      schema.parse(req[property]);
-      next();
-    } catch (err: any) {
-      return res.status(400).json({
-        message: 'Validation failed',
-        errors: err.errors,
-      });
-import { Request, Response, NextFunction } from "express";
-import { AnyZodObject, ZodError } from "zod";
-
-export const validate = (schema: AnyZodObject) => 
+export const validate = (schema: ZodSchema) => 
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       await schema.parseAsync({
@@ -25,15 +10,23 @@ export const validate = (schema: AnyZodObject) =>
         params: req.params,
       });
       next();
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof ZodError) {
+        // TypeScript now knows this is a ZodError
+        const formattedErrors = error.errors.map((err) => ({
+          field: err.path.join('.'),
+          message: err.message,
+          code: err.code,
+        }));
+        
         return res.status(400).json({
-          errors: error.errors.map(err => ({
-            path: err.path.join("."),
-            message: err.message,
-          })),
+          error: 'VALIDATION_ERROR',
+          message: 'Request validation failed',
+          details: formattedErrors,
         });
       }
+      
+      // Pass other errors to the next error handler
       next(error);
     }
   };

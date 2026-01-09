@@ -1,27 +1,58 @@
 {
   "name": "sports-court-booking-backend",
   "version": "1.0.0",
+  "description": "Backend for sports court booking system",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "prisma": "prisma"
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "seed": "npm run prisma:seed",
+    "db:reset": "prisma migrate reset && npm run prisma:seed",
+    "lint": "eslint src --ext .ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^6.2.0",
     "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "express": "^4.19.2",
+    "express": "^4.22.1",
     "jsonwebtoken": "^9.0.3",
-    "zod": "^3.23.8"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.0.3",
-    "prisma": "^5.22.0",
+    "@typescript-eslint/eslint-plugin": "^8.24.0",
+    "@typescript-eslint/parser": "^8.24.0",
+    "eslint": "^9.17.0",
+    "prisma": "^6.2.0",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "keywords": [
+    "sports",
+    "booking",
+    "court",
+    "backend",
+    "typescript"
+  ],
+  "author": "Kai",
+  "license": "MIT",
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }

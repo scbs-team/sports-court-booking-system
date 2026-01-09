@@ -1,16 +1,21 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "module": "commonjs",
-    "rootDir": "src",
-    "outDir": "dist",
-    "moduleResolution": "node",
-    "types": ["node", "express"],
-    "typeRoots": ["./src/types", "./node_modules/@types"],
-    "esModuleInterop": true,
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./",
     "strict": true,
-    "skipLibCheck": true
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "types": ["node"]
   },
-  "include": ["src"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/**/*",
+    "prisma/**/*"
+  ],
+  "exclude": ["node_modules", "dist"]
 }
