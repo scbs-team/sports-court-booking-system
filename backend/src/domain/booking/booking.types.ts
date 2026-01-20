@@ -1,65 +1,64 @@
-// Define BookingStatus enum locally
-export enum BookingStatus {
-  PENDING = 'PENDING',
-  CONFIRMED = 'CONFIRMED',
-  CANCELLED = 'CANCELLED',
-  COMPLETED = 'COMPLETED'
-}
+import { BookingStatus } from "@prisma/client";
 
-export interface CreateBookingInput {
-  courtId: string;
-  startTime: string;
-  endTime: string;
+export { BookingStatus };
+
+export type BookingTimeRange = {
+  startTime: Date;
+  endTime: Date;
+};
+
+export type BookingConflictCheck = BookingTimeRange & {
+  courtId: number;
+  excludeBookingId?: number;
+};
+
+export type CreateBookingInput = {
+  courtId: number;
+  startTime: string | Date;
+  endTime: string | Date;
   userId?: string;
-}
+};
 
-export interface GetBookingsFilters {
-  courtId?: string;
+export type GetBookingsFilters = {
+  courtId?: number;
   status?: BookingStatus;
   fromDate?: Date;
   toDate?: Date;
   userId?: string;
-}
+};
 
-export interface UpdateBookingStatusInput {
-  bookingId: string;
+export type UpdateBookingStatusInput = {
+  bookingId: number;
   newStatus: BookingStatus;
   currentStatus?: BookingStatus;
-}
+};
 
-export interface ConflictCheckResult {
-  hasConflict: boolean;
-  conflictingBooking?: any;
-  message?: string;
-}
+export type AvailabilityOptions = {
+  excludeCourtIds?: number[];
+  includeCourtIds?: number[];
+};
 
-export interface AvailabilityOptions {
-  excludeCourtIds?: string[];
-  includeCourtIds?: string[];
-}
-
-export interface BookingStats {
+export type BookingStats = {
   total: number;
   byStatus: Record<string, number>;
   utilizationRate?: number;
-}
+};
 
-export interface TimeRange {
+export type TimeRange = {
   start: Date;
   end: Date;
-}
+};
 
-export interface ValidatedTimeRange extends TimeRange {
+export type ValidatedTimeRange = TimeRange & {
   durationHours: number;
   durationMinutes: number;
-}
+};
 
-// Prisma-like types for query building
-export interface PrismaWhereInput {
-  courtId?: string | { equals?: string; not?: string };
+export type PrismaWhereInput = {
+  courtId?: number | { equals?: number; not?: number; in?: number[]; notIn?: number[] };
   status?: BookingStatus | { in?: BookingStatus[] };
   startTime?: { gte?: Date; lte?: Date };
   userId?: string;
-  id?: { not?: string };
+  id?: { not?: number };
   AND?: any[];
-}
+};

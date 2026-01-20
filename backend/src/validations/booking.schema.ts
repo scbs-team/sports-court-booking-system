@@ -23,7 +23,7 @@ const dateString = z.string().refine((val) => {
 
 export const createBookingSchema = z.object({
   body: z.object({
-    courtId: z.string().uuid({ message: 'Invalid court ID format' }),
+    courtId: z.coerce.number().int().positive(),
     startTime: isoDateTime,
     endTime: isoDateTime,
   })
@@ -42,13 +42,13 @@ export const updateBookingStatusSchema = z.object({
     status: BookingStatusEnum,
   }),
   params: z.object({
-    id: z.string().uuid({ message: 'Invalid booking ID format' }),
+    id: z.coerce.number().int().positive(),
   }),
 });
 
 export const getBookingsSchema = z.object({
   query: z.object({
-    courtId: z.string().uuid({ message: 'Invalid court ID format' }).optional(),
+    courtId: z.coerce.number().int().positive().optional(),
     status: BookingStatusEnum.optional(),
     fromDate: isoDateTime.optional(),
     toDate: isoDateTime.optional(),
@@ -69,12 +69,12 @@ export const getBookingsSchema = z.object({
 
 export const checkAvailabilitySchema = z.object({
   params: z.object({
-    courtId: z.string().uuid({ message: 'Invalid court ID format' }),
+    courtId: z.coerce.number().int().positive(),
   }),
   query: z.object({
     startTime: isoDateTime,
     endTime: isoDateTime,
-    excludeBookingId: z.string().uuid({ message: 'Invalid booking ID format' }).optional(),
+    excludeBookingId: z.coerce.number().int().positive().optional(),
   })
   .refine((data) => {
     const start = new Date(data.startTime);
@@ -88,13 +88,13 @@ export const checkAvailabilitySchema = z.object({
 
 export const deleteBookingSchema = z.object({
   params: z.object({
-    id: z.string().uuid({ message: 'Invalid booking ID format' }),
+    id: z.coerce.number().int().positive(),
   }),
 });
 
 export const getBookingStatsSchema = z.object({
   query: z.object({
-    courtId: z.string().uuid({ message: 'Invalid court ID format' }).optional(),
+    courtId: z.coerce.number().int().positive().optional(),
     startDate: dateString.optional(),
     endDate: dateString.optional(),
   })

@@ -105,9 +105,9 @@ export class CourtController {
    */
   static async getCourtById(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const courtId = Number(req.params.id);
       
-      if (!id || id.length < 10) {
+      if (!Number.isInteger(courtId) || courtId <= 0) {
         res.status(400).json({
           success: false,
           error: 'VALIDATION_ERROR',
@@ -141,7 +141,7 @@ export class CourtController {
       } : undefined;
       
       const court = await prisma.court.findUnique({
-        where: { id },
+        where: { id: courtId },
         include,
       });
       
@@ -172,9 +172,9 @@ export class CourtController {
    */
   static async deleteCourt(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const courtId = Number(req.params.id);
       
-      if (!id || id.length < 10) {
+      if (!Number.isInteger(courtId) || courtId <= 0) {
         res.status(400).json({
           success: false,
           error: 'VALIDATION_ERROR',
@@ -186,7 +186,7 @@ export class CourtController {
       // Check if court has any future bookings
       const activeBookings = await prisma.booking.count({
         where: {
-          courtId: id,
+          courtId: courtId,
           endTime: {
             gt: new Date()
           },
@@ -206,7 +206,7 @@ export class CourtController {
       }
       
       const court = await prisma.court.delete({
-        where: { id }
+        where: { id: courtId }
       });
       
       res.json({
@@ -236,10 +236,10 @@ export class CourtController {
    */
   static async updateCourt(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const courtId = Number(req.params.id);
       const { name } = req.body;
       
-      if (!id || id.length < 10) {
+      if (!Number.isInteger(courtId) || courtId <= 0) {
         res.status(400).json({
           success: false,
           error: 'VALIDATION_ERROR',
@@ -258,7 +258,7 @@ export class CourtController {
       }
       
       const court = await prisma.court.update({
-        where: { id },
+        where: { id: courtId },
         data: { 
           name: name.trim(),
         }
@@ -299,9 +299,9 @@ export class CourtController {
    */
   static async getCourtStats(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const courtId = Number(req.params.id);
       
-      if (!id || id.length < 10) {
+      if (!Number.isInteger(courtId) || courtId <= 0) {
         res.status(400).json({
           success: false,
           error: 'VALIDATION_ERROR',
@@ -311,7 +311,7 @@ export class CourtController {
       }
       
       const court = await prisma.court.findUnique({
-        where: { id },
+        where: { id: courtId },
         include: {
           _count: {
             select: {
@@ -386,10 +386,10 @@ export class CourtController {
    */
   static async getCourtAvailability(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const courtId = Number(req.params.id);
       const { date } = req.query;
       
-      if (!id || id.length < 10) {
+      if (!Number.isInteger(courtId) || courtId <= 0) {
         res.status(400).json({
           success: false,
           error: 'VALIDATION_ERROR',
@@ -406,7 +406,7 @@ export class CourtController {
       
       const bookings = await prisma.booking.findMany({
         where: {
-          courtId: id,
+          courtId: courtId,
           startTime: {
             gte: targetDate,
             lt: nextDay
@@ -427,7 +427,7 @@ export class CourtController {
       res.json({
         success: true,
         data: {
-          courtId: id,
+          courtId: courtId,
           date: targetDate,
           bookings,
           availableSlots: bookings.length < 14 ? 14 - bookings.length : 0 // Assuming 14 slots per day

@@ -21,21 +21,20 @@ router.delete("/:id", courtController.deleteCourt);
 // GET /api/courts/:id/bookings - Get bookings for specific court (with date filters)
 router.get("/:id/bookings", async (req, res) => {
   try {
-    const { id } = req.params;
+    const courtId = Number(req.params.id);
     const { startDate, endDate, status } = req.query;
     
-    // UUID validation
-    if (!id || id.length < 10) {
+    if (!Number.isInteger(courtId) || courtId <= 0) {
       return res.status(400).json({
         success: false,
-        error: "Valid court ID (UUID) is required"
+        error: "Valid court ID is required"
       });
     }
     
     const prisma = await import("../lib/prisma").then(m => m.default);
     
     const where: any = {
-      courtId: id // Keep as string, NO Number()
+      courtId: courtId
     };
     
     // Status filter
@@ -63,7 +62,7 @@ router.get("/:id/bookings", async (req, res) => {
       success: true,
       data: bookings,
       count: bookings.length,
-      courtId: id
+      courtId: courtId
     });
   } catch (err: any) {
     res.status(500).json({ 
@@ -76,14 +75,13 @@ router.get("/:id/bookings", async (req, res) => {
 // GET /api/courts/:id/availability - Get court availability for a date
 router.get("/:id/availability", async (req, res) => {
   try {
-    const { id } = req.params;
+    const courtId = Number(req.params.id);
     const { date } = req.query;
     
-    // UUID validation
-    if (!id || id.length < 10) {
+    if (!Number.isInteger(courtId) || courtId <= 0) {
       return res.status(400).json({
         success: false,
-        error: "Valid court ID (UUID) is required"
+        error: "Valid court ID is required"
       });
     }
     
@@ -99,7 +97,7 @@ router.get("/:id/availability", async (req, res) => {
     // Get all active bookings for this court on the target date
     const bookings = await prisma.booking.findMany({
       where: {
-        courtId: id, // Keep as string
+        courtId: courtId,
         status: {
           in: ["PENDING", "CONFIRMED"] as any[]
         },
@@ -141,7 +139,7 @@ router.get("/:id/availability", async (req, res) => {
       success: true,
       data: {
         date: startOfDay.toISOString().split('T')[0],
-        courtId: id,
+        courtId: courtId,
         availableSlots,
         bookings
       }

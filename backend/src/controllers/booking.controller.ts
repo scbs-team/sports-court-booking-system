@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
-import * as bookingService from '../services/booking.service';
-import { BookingServiceError } from '../services/booking.service';
+import { Request, Response } from "express";
+import * as bookingService from "../services/booking.service";
+import { BookingServiceError } from "../services/booking.service";
 
 export class BookingController {
   /**
@@ -9,14 +9,15 @@ export class BookingController {
   static async createBooking(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.id) {
-        res.status(401).json({ 
-          error: 'Unauthorized',
-          message: 'Authentication required'
+        res.status(401).json({
+          error: "UNAUTHORIZED",
+          message: "Authentication required",
         });
         return;
       }
 
-      const { courtId, startTime, endTime } = req.body;
+      const courtId = Number(req.body.courtId);
+      const { startTime, endTime } = req.body;
 
       const booking = await bookingService.createBooking({
         courtId,
@@ -28,20 +29,20 @@ export class BookingController {
       res.status(201).json({
         success: true,
         data: booking,
-        message: 'Booking created successfully'
+        message: "Booking created successfully",
       });
     } catch (error) {
       if (error instanceof BookingServiceError) {
         const statusCode = this.getStatusCodeForError(error.code);
         res.status(statusCode).json({
-          error: error.code || 'BOOKING_ERROR',
+          error: error.code || "BOOKING_ERROR",
           message: error.message,
           details: error.details,
         });
       } else {
         res.status(500).json({
-          error: 'INTERNAL_ERROR',
-          message: 'An unexpected error occurred',
+          error: "INTERNAL_ERROR",
+          message: "An unexpected error occurred",
         });
       }
     }
@@ -53,23 +54,22 @@ export class BookingController {
   static async getBookings(req: Request, res: Response): Promise<void> {
     try {
       const { courtId, status, fromDate, toDate, userId } = req.query;
-      
-      // Authorization: Users can only see their own bookings unless admin
-      let filterUserId = userId as string;
-      if (req.user?.role !== 'ADMIN') {
-        filterUserId = req.user?.id || '';
+
+      let filterUserId = userId as string | undefined;
+      if (req.user?.role !== "ADMIN") {
+        filterUserId = req.user?.id;
       }
 
       const filters = {
-        courtId: courtId as string,
+        courtId: typeof courtId === "number" ? courtId : courtId ? Number(courtId) : undefined,
         status: status as any,
         fromDate: fromDate ? new Date(fromDate as string) : undefined,
         toDate: toDate ? new Date(toDate as string) : undefined,
         userId: filterUserId,
       };
-      
+
       const bookings = await bookingService.getBookings(filters);
-      
+
       res.json({
         success: true,
         data: bookings,
@@ -78,18 +78,18 @@ export class BookingController {
           page: 1,
           limit: bookings.length,
           total: bookings.length,
-        }
+        },
       });
     } catch (error) {
       if (error instanceof BookingServiceError) {
         res.status(400).json({
-          error: error.code || 'FETCH_ERROR',
+          error: error.code || "FETCH_ERROR",
           message: error.message,
         });
       } else {
         res.status(500).json({
-          error: 'INTERNAL_ERROR',
-          message: 'Failed to fetch bookings',
+          error: "INTERNAL_ERROR",
+          message: "Failed to fetch bookings",
         });
       }
     }
@@ -100,33 +100,32 @@ export class BookingController {
    */
   static async getBookingById(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = Number(req.params.id);
       const booking = await bookingService.getBookingById(id);
-      
-      // Authorization check
-      if (req.user?.role !== 'ADMIN' && booking.user.id !== req.user?.id) {
+
+      if (req.user?.role !== "ADMIN" && booking.user.id !== req.user?.id) {
         res.status(403).json({
-          error: 'FORBIDDEN',
-          message: 'You do not have permission to view this booking',
+          error: "FORBIDDEN",
+          message: "You do not have permission to view this booking",
         });
         return;
       }
-      
+
       res.json({
         success: true,
         data: booking,
       });
     } catch (error) {
       if (error instanceof BookingServiceError) {
-        const statusCode = error.code === 'BOOKING_NOT_FOUND' ? 404 : 400;
+        const statusCode = error.code === "BOOKING_NOT_FOUND" ? 404 : 400;
         res.status(statusCode).json({
           error: error.code,
           message: error.message,
         });
       } else {
         res.status(500).json({
-          error: 'INTERNAL_ERROR',
-          message: 'Failed to fetch booking',
+          error: "INTERNAL_ERROR",
+          message: "Failed to fetch booking",
         });
       }
     }
@@ -137,32 +136,32 @@ export class BookingController {
    */
   static async updateBookingStatus(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const bookingId = Number(req.params.id);
       const { status } = req.body;
-      
+
       const booking = await bookingService.updateBookingStatus({
-        bookingId: id,
+        bookingId,
         newStatus: status,
         userId: req.user?.id,
       });
-      
+
       res.json({
         success: true,
         data: booking,
-        message: `Booking ${status.toLowerCase()} successfully`,
+        message: `Booking ${String(status).toLowerCase()} successfully`,
       });
     } catch (error) {
       if (error instanceof BookingServiceError) {
         const statusCode = this.getStatusCodeForError(error.code);
         res.status(statusCode).json({
-          error: error.code || 'UPDATE_ERROR',
+          error: error.code || "UPDATE_ERROR",
           message: error.message,
           details: error.details,
         });
       } else {
         res.status(500).json({
-          error: 'INTERNAL_ERROR',
-          message: 'Failed to update booking status',
+          error: "INTERNAL_ERROR",
+          message: "Failed to update booking status",
         });
       }
     }
@@ -173,22 +172,27 @@ export class BookingController {
    */
   static async checkAvailability(req: Request, res: Response): Promise<void> {
     try {
-      const { courtId, startTime, endTime } = req.query;
-      
-      if (!courtId || !startTime || !endTime) {
-        res.status(400).json({ 
-          error: 'VALIDATION_ERROR',
-          message: 'courtId, startTime, and endTime are required' 
+      const courtIdValue = req.params.courtId ?? req.query.courtId;
+      const { startTime, endTime, excludeBookingId } = req.query;
+
+      if (!courtIdValue || !startTime || !endTime) {
+        res.status(400).json({
+          error: "VALIDATION_ERROR",
+          message: "courtId, startTime, and endTime are required",
         });
         return;
       }
-      
+
+      const courtId = Number(courtIdValue);
+      const excludeId = excludeBookingId ? Number(excludeBookingId) : undefined;
+
       const availability = await bookingService.checkCourtAvailability(
-        courtId as string,
+        courtId,
         startTime as string,
-        endTime as string
+        endTime as string,
+        excludeId
       );
-      
+
       res.json({
         success: true,
         data: availability,
@@ -196,14 +200,14 @@ export class BookingController {
     } catch (error) {
       if (error instanceof BookingServiceError) {
         res.status(400).json({
-          error: error.code || 'AVAILABILITY_ERROR',
+          error: error.code || "AVAILABILITY_ERROR",
           message: error.message,
           details: error.details,
         });
       } else {
         res.status(500).json({
-          error: 'INTERNAL_ERROR',
-          message: 'Failed to check availability',
+          error: "INTERNAL_ERROR",
+          message: "Failed to check availability",
         });
       }
     }
@@ -215,47 +219,47 @@ export class BookingController {
   static async getAvailableCourts(req: Request, res: Response): Promise<void> {
     try {
       const { startTime, endTime, excludeCourts, includeCourts } = req.query;
-      
+
       if (!startTime || !endTime) {
-        res.status(400).json({ 
-          error: 'VALIDATION_ERROR',
-          message: 'startTime and endTime are required' 
+        res.status(400).json({
+          error: "VALIDATION_ERROR",
+          message: "startTime and endTime are required",
         });
         return;
       }
-      
+
       const options: any = {};
-      
+
       if (excludeCourts) {
         try {
           options.excludeCourtIds = JSON.parse(excludeCourts as string);
         } catch {
-          res.status(400).json({ 
-            error: 'VALIDATION_ERROR',
-            message: 'excludeCourts must be a valid JSON array' 
+          res.status(400).json({
+            error: "VALIDATION_ERROR",
+            message: "excludeCourts must be a valid JSON array",
           });
           return;
         }
       }
-      
+
       if (includeCourts) {
         try {
           options.includeCourtIds = JSON.parse(includeCourts as string);
         } catch {
-          res.status(400).json({ 
-            error: 'VALIDATION_ERROR',
-            message: 'includeCourts must be a valid JSON array' 
+          res.status(400).json({
+            error: "VALIDATION_ERROR",
+            message: "includeCourts must be a valid JSON array",
           });
           return;
         }
       }
-      
+
       const availableCourts = await bookingService.getAvailableCourts(
         startTime as string,
         endTime as string,
         options
       );
-      
+
       res.json({
         success: true,
         data: availableCourts,
@@ -264,13 +268,13 @@ export class BookingController {
     } catch (error) {
       if (error instanceof BookingServiceError) {
         res.status(400).json({
-          error: error.code || 'FETCH_AVAILABLE_ERROR',
+          error: error.code || "FETCH_AVAILABLE_ERROR",
           message: error.message,
         });
       } else {
         res.status(500).json({
-          error: 'INTERNAL_ERROR',
-          message: 'Failed to fetch available courts',
+          error: "INTERNAL_ERROR",
+          message: "Failed to fetch available courts",
         });
       }
     }
@@ -281,23 +285,27 @@ export class BookingController {
    */
   static async deleteBooking(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      
+      const id = Number(req.params.id);
+
       await bookingService.deleteBooking(id, req.user?.id);
-      
+
       res.status(204).send();
     } catch (error) {
       if (error instanceof BookingServiceError) {
-        const statusCode = error.code === 'BOOKING_NOT_FOUND' ? 404 : 
-                          error.code === 'UNAUTHORIZED' ? 403 : 400;
+        const statusCode =
+          error.code === "BOOKING_NOT_FOUND"
+            ? 404
+            : error.code === "UNAUTHORIZED"
+            ? 403
+            : 400;
         res.status(statusCode).json({
           error: error.code,
           message: error.message,
         });
       } else {
         res.status(500).json({
-          error: 'INTERNAL_ERROR',
-          message: 'Failed to delete booking',
+          error: "INTERNAL_ERROR",
+          message: "Failed to delete booking",
         });
       }
     }
@@ -309,22 +317,21 @@ export class BookingController {
   static async getBookingStats(req: Request, res: Response): Promise<void> {
     try {
       const { courtId, startDate, endDate } = req.query;
-      
-      // Only admins can view stats
-      if (req.user?.role !== 'ADMIN') {
+
+      if (req.user?.role !== "ADMIN") {
         res.status(403).json({
-          error: 'FORBIDDEN',
-          message: 'Admin access required',
+          error: "FORBIDDEN",
+          message: "Admin access required",
         });
         return;
       }
-      
+
       const stats = await bookingService.getBookingStats(
-        courtId as string | undefined,
+        typeof courtId === "number" ? courtId : courtId ? Number(courtId) : undefined,
         startDate ? new Date(startDate as string) : undefined,
         endDate ? new Date(endDate as string) : undefined
       );
-      
+
       res.json({
         success: true,
         data: stats,
@@ -332,13 +339,13 @@ export class BookingController {
     } catch (error) {
       if (error instanceof BookingServiceError) {
         res.status(400).json({
-          error: error.code || 'STATS_ERROR',
+          error: error.code || "STATS_ERROR",
           message: error.message,
         });
       } else {
         res.status(500).json({
-          error: 'INTERNAL_ERROR',
-          message: 'Failed to fetch booking statistics',
+          error: "INTERNAL_ERROR",
+          message: "Failed to fetch booking statistics",
         });
       }
     }
@@ -349,16 +356,16 @@ export class BookingController {
    */
   static async autoCompletePastBookings(req: Request, res: Response): Promise<void> {
     try {
-      if (req.user?.role !== 'ADMIN') {
+      if (req.user?.role !== "ADMIN") {
         res.status(403).json({
-          error: 'FORBIDDEN',
-          message: 'Admin access required',
+          error: "FORBIDDEN",
+          message: "Admin access required",
         });
         return;
       }
-      
+
       const result = await bookingService.autoCompletePastBookings();
-      
+
       res.json({
         success: true,
         data: result,
@@ -367,13 +374,13 @@ export class BookingController {
     } catch (error) {
       if (error instanceof BookingServiceError) {
         res.status(400).json({
-          error: error.code || 'AUTO_COMPLETE_ERROR',
+          error: error.code || "AUTO_COMPLETE_ERROR",
           message: error.message,
         });
       } else {
         res.status(500).json({
-          error: 'INTERNAL_ERROR',
-          message: 'Failed to auto-complete bookings',
+          error: "INTERNAL_ERROR",
+          message: "Failed to auto-complete bookings",
         });
       }
     }
@@ -384,31 +391,29 @@ export class BookingController {
    */
   private static getStatusCodeForError(errorCode?: string): number {
     const errorMap: Record<string, number> = {
-      'UNAUTHORIZED': 401,
-      'FORBIDDEN': 403,
-      'BOOKING_NOT_FOUND': 404,
-      'COURT_NOT_FOUND': 404,
-      'INVALID_TIME_RANGE': 400,
-      'MAX_DURATION_EXCEEDED': 400,
-      'MIN_DURATION_NOT_MET': 400,
-      'OUTSIDE_BUSINESS_HOURS': 400,
-      'CROSS_DAY_BOOKING': 400,
-      'MAX_ADVANCE_EXCEEDED': 400,
-      'MIN_ADVANCE_NOT_MET': 400,
-      'BOOKING_CONFLICT': 409,
-      'INVALID_STATUS_TRANSITION': 400,
-      'CONCURRENCY_CONFLICT': 409,
-      'CANCELLATION_TOO_LATE': 400,
-      'COMPLETION_TOO_EARLY': 400,
-      'DELETE_NOT_ALLOWED': 400,
+      UNAUTHORIZED: 401,
+      FORBIDDEN: 403,
+      BOOKING_NOT_FOUND: 404,
+      COURT_NOT_FOUND: 404,
+      INVALID_TIME_RANGE: 400,
+      MAX_DURATION_EXCEEDED: 400,
+      MIN_DURATION_NOT_MET: 400,
+      OUTSIDE_BUSINESS_HOURS: 400,
+      CROSS_DAY_BOOKING: 400,
+      MAX_ADVANCE_EXCEEDED: 400,
+      MIN_ADVANCE_NOT_MET: 400,
+      BOOKING_CONFLICT: 409,
+      INVALID_STATUS_TRANSITION: 400,
+      CONCURRENCY_CONFLICT: 409,
+      CANCELLATION_TOO_LATE: 400,
+      COMPLETION_TOO_EARLY: 400,
+      DELETE_NOT_ALLOWED: 400,
     };
-    
-    return errorMap[errorCode || ''] || 400;
+
+    return errorMap[errorCode || ""] || 400;
   }
 }
 
-<<<<<<< HEAD
-// Export individual handler functions for compatibility with existing routes
 export const createBookingHandler = BookingController.createBooking.bind(BookingController);
 export const getBookings = BookingController.getBookings.bind(BookingController);
 export const getBookingById = BookingController.getBookingById.bind(BookingController);
@@ -416,41 +421,5 @@ export const updateBookingStatus = BookingController.updateBookingStatus.bind(Bo
 export const checkAvailability = BookingController.checkAvailability.bind(BookingController);
 export const deleteBookingHandler = BookingController.deleteBooking.bind(BookingController);
 export const getBookingStatsHandler = BookingController.getBookingStats.bind(BookingController);
-export const autoCompletePastBookingsHandler = BookingController.autoCompletePastBookings.bind(BookingController);
-=======
-
-export async function confirmBookingHandler(req: Request, res: Response) {
-  try {
-    const booking = await BookingService.confirmBooking(Number(req.params.id));
-    res.json(booking);
-  } catch (err: any) {
-    res.status(400).json({ message: err.message });
-  }
-}
-
-export async function cancelBookingHandler(req: Request, res: Response) {
-  try {
-    const booking = await BookingService.cancelBooking(Number(req.params.id));
-    res.json(booking);
-  } catch (err: any) {
-    res.status(400).json({ message: err.message });
-  }
-}
-
-export async function completeBookingHandler(req: Request, res: Response) {
-  try {
-    const booking = await BookingService.completeBooking(Number(req.params.id));
-    res.json(booking);
-  } catch (err: any) {
-    res.status(400).json({ message: err.message });
-  }
-}
-export async function getBookings(req: Request, res: Response) {
-  try {
-    const bookings = await BookingService.getBookings();
-    res.json(bookings);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-}
->>>>>>> bda24ab (api deploy for backend)
+export const autoCompletePastBookingsHandler =
+  BookingController.autoCompletePastBookings.bind(BookingController);
