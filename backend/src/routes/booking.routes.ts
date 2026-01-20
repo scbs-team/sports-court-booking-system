@@ -10,6 +10,7 @@ import {
 } from '../validations/booking.schema';
 import {
   createBookingHandler,
+<<<<<<< HEAD
   getBookings,
   getBookingById,
   updateBookingStatus,
@@ -17,6 +18,12 @@ import {
   deleteBookingHandler,
   getBookingStatsHandler,
   autoCompletePastBookingsHandler,
+=======
+  confirmBookingHandler,
+  cancelBookingHandler,
+  completeBookingHandler,
+  getBookings,
+>>>>>>> bda24ab (api deploy for backend)
 } from '../controllers/booking.controller';
 import * as bookingService from '../services/booking.service';
 
@@ -30,6 +37,7 @@ const router = Router();
  */
 
 /**
+<<<<<<< HEAD
  * @swagger
  * /api/bookings:
  *   get:
@@ -64,6 +72,18 @@ const router = Router();
  *     responses:
  *       200:
  *         description: List of bookings
+=======
+ * @route   GET /bookings
+ * @desc    List bookings
+ * @access  Public
+ */
+router.get('/', getBookings);
+
+/**
+ * @route   PATCH /bookings/:id/confirm
+ * @desc    Confirm a booking (automated)
+ * @access  Authenticated users
+>>>>>>> bda24ab (api deploy for backend)
  */
 router.get('/', authMiddleware, validate(getBookingsSchema), getBookings);
 
@@ -125,6 +145,7 @@ router.get('/availability', checkAvailability);
  *       200:
  *         description: Court availability information
  */
+<<<<<<< HEAD
 router.get('/availability/:courtId', validate(checkAvailabilitySchema), checkAvailability);
 
 /**
@@ -381,5 +402,8 @@ router.get('/available-courts', async (req, res) => {
     }
   }
 });
+=======
+router.patch('/:id/complete', authMiddleware, completeBookingHandler);
+>>>>>>> bda24ab (api deploy for backend)
 
 export default router;

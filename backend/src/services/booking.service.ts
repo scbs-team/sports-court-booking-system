@@ -554,6 +554,7 @@ export const checkCourtAvailability = async (
       'CHECK_AVAILABILITY_FAILED'
     );
   }
+<<<<<<< HEAD
 };
 
 export const getBookingById = async (id: string): Promise<any> => {
@@ -704,3 +705,15 @@ export const autoCompletePastBookings = async (): Promise<{ completed: number }>
 
 // Export BookingStatus for use in other files
 export { BookingStatus };
+=======
+
+  /**
+   * List all bookings
+   */
+  static async getBookings() {
+    return prisma.booking.findMany({
+      orderBy: { startTime: 'asc' },
+    });
+  }
+}
+>>>>>>> bda24ab (api deploy for backend)

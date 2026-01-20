@@ -15,5 +15,8 @@ export const prisma =
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> bda24ab (api deploy for backend)
 export default prisma;

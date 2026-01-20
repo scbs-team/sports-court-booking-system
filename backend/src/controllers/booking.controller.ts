@@ -407,6 +407,7 @@ export class BookingController {
   }
 }
 
+<<<<<<< HEAD
 // Export individual handler functions for compatibility with existing routes
 export const createBookingHandler = BookingController.createBooking.bind(BookingController);
 export const getBookings = BookingController.getBookings.bind(BookingController);
@@ -416,3 +417,40 @@ export const checkAvailability = BookingController.checkAvailability.bind(Bookin
 export const deleteBookingHandler = BookingController.deleteBooking.bind(BookingController);
 export const getBookingStatsHandler = BookingController.getBookingStats.bind(BookingController);
 export const autoCompletePastBookingsHandler = BookingController.autoCompletePastBookings.bind(BookingController);
+=======
+
+export async function confirmBookingHandler(req: Request, res: Response) {
+  try {
+    const booking = await BookingService.confirmBooking(Number(req.params.id));
+    res.json(booking);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+export async function cancelBookingHandler(req: Request, res: Response) {
+  try {
+    const booking = await BookingService.cancelBooking(Number(req.params.id));
+    res.json(booking);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+export async function completeBookingHandler(req: Request, res: Response) {
+  try {
+    const booking = await BookingService.completeBooking(Number(req.params.id));
+    res.json(booking);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+}
+export async function getBookings(req: Request, res: Response) {
+  try {
+    const bookings = await BookingService.getBookings();
+    res.json(bookings);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+}
+>>>>>>> bda24ab (api deploy for backend)
