@@ -1,7 +1,16 @@
+<<<<<<< HEAD
 import { Request, Response, NextFunction } from 'express';
 import { ZodError, ZodSchema } from 'zod';
 
 export const validate = (schema: ZodSchema) => 
+=======
+
+import { Request, Response, NextFunction } from "express";
+import { AnyZodObject, ZodError } from "zod";
+
+export const validate =
+  (schema: AnyZodObject) =>
+>>>>>>> 698b4ed (errors fixed)
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       await schema.parseAsync({
@@ -20,9 +29,16 @@ export const validate = (schema: ZodSchema) =>
         }));
         
         return res.status(400).json({
+<<<<<<< HEAD
           error: 'VALIDATION_ERROR',
           message: 'Request validation failed',
           details: formattedErrors,
+=======
+          errors: error.errors.map((err) => ({
+            path: err.path.join("."),
+            message: err.message,
+          })),
+>>>>>>> 698b4ed (errors fixed)
         });
       }
       
