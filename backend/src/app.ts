@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import bookingRoutes from './routes/booking.routes';
 import courtRoutes from './routes/court.routes';
 import authRoutes from './routes/auth.routes';
@@ -6,6 +7,24 @@ import authRoutes from './routes/auth.routes';
 const app = express();
 
 // Basic middleware
+const configuredOrigins = (process.env.CORS_ORIGIN ?? '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const defaultOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const allowedOrigins = configuredOrigins.length > 0 ? configuredOrigins : defaultOrigins;
+
+app.use(
+  cors({
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

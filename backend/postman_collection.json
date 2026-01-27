@@ -1,0 +1,246 @@
+{
+  "info": {
+    "name": "Sports Court Booking System API",
+    "description": "Postman collection for the deployed API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://sports-court-booking-system-heun.onrender.com"
+    },
+    {
+      "key": "jwt",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"alice\",\n  \"email\": \"alice@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Signin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/signin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alice@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Users (Auth)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": "{{baseUrl}}/api/auth/users"
+          }
+        },
+        {
+          "name": "Update User (Auth)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt}}" }
+            ],
+            "url": "{{baseUrl}}/api/auth/users/{{userId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"alice2\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete User (Auth)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": "{{baseUrl}}/api/auth/users/{{userId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Courts",
+      "item": [
+        {
+          "name": "List Courts",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/courts?includeBookings=true&upcomingOnly=true"
+          }
+        },
+        {
+          "name": "Create Court",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/courts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Court A\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Court By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/courts/{{courtId}}?includeBookings=true&days=7"
+          }
+        },
+        {
+          "name": "Update Court",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/courts/{{courtId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Court A Updated\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Court",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/courts/{{courtId}}"
+          }
+        },
+        {
+          "name": "Court Bookings",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/courts/{{courtId}}/bookings?startDate=2025-01-01&endDate=2025-01-31&status=CONFIRMED"
+          }
+        },
+        {
+          "name": "Court Availability",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/courts/{{courtId}}/availability?date=2025-01-10"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "List Bookings (Auth)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": "{{baseUrl}}/api/bookings"
+          }
+        },
+        {
+          "name": "Create Booking (Auth)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt}}" }
+            ],
+            "url": "{{baseUrl}}/api/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courtId\": 1,\n  \"startTime\": \"2025-01-10T10:00:00.000Z\",\n  \"endTime\": \"2025-01-10T11:00:00.000Z\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Booking By ID (Auth)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": "{{baseUrl}}/api/bookings/{{bookingId}}"
+          }
+        },
+        {
+          "name": "Update Booking Status (Auth)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt}}" }
+            ],
+            "url": "{{baseUrl}}/api/bookings/{{bookingId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CANCELLED\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Booking (Auth)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": "{{baseUrl}}/api/bookings/{{bookingId}}"
+          }
+        },
+        {
+          "name": "Check Availability",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/bookings/availability?courtId=1&startTime=2025-01-10T10:00:00.000Z&endTime=2025-01-10T11:00:00.000Z"
+          }
+        },
+        {
+          "name": "Check Availability (Court ID in Path)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/bookings/availability/{{courtId}}?startTime=2025-01-10T10:00:00.000Z&endTime=2025-01-10T11:00:00.000Z"
+          }
+        },
+        {
+          "name": "Available Courts",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/bookings/available-courts?startTime=2025-01-10T10:00:00.000Z&endTime=2025-01-10T11:00:00.000Z"
+          }
+        },
+        {
+          "name": "Booking Stats (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": "{{baseUrl}}/api/bookings/stats/overview"
+          }
+        },
+        {
+          "name": "Auto-Complete Bookings (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": "{{baseUrl}}/api/bookings/admin/auto-complete"
+          }
+        }
+      ]
+    }
+  ]
+}
